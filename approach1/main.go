@@ -1,4 +1,4 @@
-// without-concurrency-handling-choose-seats on random
+// with-concurrency-handling-choose-seats on random
 // 6*20
 package main
 
@@ -47,17 +47,25 @@ func main(){
 	}
 	wg.Wait()
 	printSeats()
-
+	
 }	
 
 
 func allocateSeat(id int) {
+	tx,err:=Db.Begin()
+	if err!=nil{
+		log.Fatalf("Error in beginning transaction: %v",err)
+	}
     seat := rand.Intn(120) + 1
     log.Printf("Allocating seat %d to user %d", seat, id)
-    _, err := Db.Exec(`INSERT INTO bookings (id,user_id,seat) VALUES (NULL,?,?)`, id, seat)
-    if err != nil {
+    _, err1 := tx.Exec(`INSERT INTO bookings (id,user_id,seat) VALUES (NULL,?,?)`, id, seat)
+    if err1 != nil {
         log.Printf("Error allocating seat: %v", err)
     }
+	err=tx.Commit()
+	if err!=nil{
+		log.Fatalf("Error in committing transaction: %v",err)
+	}
 }
 func printSeats(){
 	rows,err:=Db.Query(`SELECT bookings.id as booking_id,users.id as user_id,users.username,bookings.seat FROM bookings JOIN users ON bookings.user_id=users.id`)
@@ -81,14 +89,13 @@ func printSeats(){
 	for i:=0;i<6;i++{
 		for j:=0;j<20;j++{
 			if seats[i][j]{
-				fmt.Print("X")
+				fmt.Print("x")
 			}else{
 				fmt.Print(".")
 			}
-			if j==2 {
-				fmt.Print(" ")
-			}
-		}
+			
+		
+	}
 		fmt.Println()
 	}
 }
