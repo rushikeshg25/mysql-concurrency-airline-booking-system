@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS flights (
 
 CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    seat INT NOT NULL,
     user_id INT NOT NULL,
     flight_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
