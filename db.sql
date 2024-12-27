@@ -7,18 +7,12 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS flights (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    flight_name VARCHAR(255) NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     seat INT NOT NULL,
     user_id INT NOT NULL,
-    flight_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (flight_id) REFERENCES flights(id)
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 INSERT INTO users (username) VALUES

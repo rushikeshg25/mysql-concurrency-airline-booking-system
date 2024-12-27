@@ -17,7 +17,7 @@ var Db *sql.DB
 
 func main(){
 	var err error
-	Db,err=sql.Open("mysql","DB_URL=root:@/airline");
+	Db,err=sql.Open("mysql","root:@/airline");
 	if err!=nil{
 		panic(err)
 	}
@@ -51,13 +51,16 @@ func main(){
 }	
 
 
-func allocateSeat(id int){
-	seat:=rand.Intn(120)+1
-	Db.Query(`INSERT INTO bookings (id,user_id,seat) VALUES (NULL,?,?)`,id,seat)
+func allocateSeat(id int) {
+    seat := rand.Intn(120) + 1
+    log.Printf("Allocating seat %d to user %d", seat, id)
+    _, err := Db.Exec(`INSERT INTO bookings (id,user_id,seat) VALUES (NULL,?,?)`, id, seat)
+    if err != nil {
+        log.Printf("Error allocating seat: %v", err)
+    }
 }
-
 func printSeats(){
-	rows,err:=Db.Query(`SELECT bookings.id as booking_id,users.id as user_id,users.username FROM bookings JOIN users ON bookings.user_id=users.id`)
+	rows,err:=Db.Query(`SELECT bookings.id as booking_id,users.id as user_id,users.username,bookings.seat FROM bookings JOIN users ON bookings.user_id=users.id`)
 	var seats [6][20]bool
 	if err!=nil{
 		log.Fatalf("Error in fetching data from bookings table: %v",err)	
@@ -66,15 +69,17 @@ func printSeats(){
 		var booking_id int
 		var user_id int
 		var username string
-		err:=rows.Scan(&booking_id,&user_id,&username)
+		var seat int
+		err:=rows.Scan(&booking_id,&user_id,&username,&seat)
 		if err!=nil{
 			log.Fatalf("Error in scanning rows: %v",err)
 		}
 		fmt.Printf("Booking id: %d, User id: %d, Username: %s\n",booking_id,user_id,username)
-		seats[(booking_id-1)/20][(booking_id-1)%20]=true
+		r,c:=(seat-1)/20,(seat-1)%20
+		seats[r][c]=true
 	}
 	for i:=0;i<6;i++{
-		for j:=0;j<120;j++{
+		for j:=0;j<20;j++{
 			if seats[i][j]{
 				fmt.Print("X")
 			}else{
